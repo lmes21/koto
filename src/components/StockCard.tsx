@@ -1,3 +1,4 @@
+import { Link } from 'react-router'
 import type { Stock } from '../types/stock'
 import { formatPercent, formatPrice } from '../utils/format'
 
@@ -13,10 +14,10 @@ export function StockCard({ stock, isFavorite, onToggleFavorite }: StockCardProp
   return (
     <article className="rounded-2xl border border-slate-800 bg-slate-900 p-5 transition hover:border-slate-600">
       <div className="flex items-start justify-between gap-3">
-        <div>
+        <Link to={`/stock/${stock.symbol}`} className="block hover:text-sky-400">
           <h2 className="text-lg font-semibold">{stock.symbol}</h2>
           <p className="text-sm text-slate-400">{stock.name}</p>
-        </div>
+        </Link>
         <button
           type="button"
           onClick={() => onToggleFavorite(stock.symbol)}
