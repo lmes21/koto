@@ -3,9 +3,11 @@ import { Pagination } from '../components/Pagination'
 import { SearchBar } from '../components/SearchBar'
 import { SectorFilter } from '../components/SectorFilter'
 import { StockCard } from '../components/StockCard'
+import { TrendFilter } from '../components/TrendFilter'
 import { mockStocks } from '../data/mockStocks'
 import { useDebounce } from '../hooks/useDebounce'
 import { useFavorites } from '../hooks/useFavorites'
+import type { Trend } from '../types/stock'
 import { filterStocks } from '../utils/filterStocks'
 import { paginate, totalPages } from '../utils/paginate'
 
@@ -15,11 +17,16 @@ const sectors = [...new Set(mockStocks.map((stock) => stock.sector))]
 export function HomePage() {
   const [query, setQuery] = useState('')
   const [sector, setSector] = useState('Todos')
+  const [trend, setTrend] = useState<Trend>('all')
+  const [onlyFavorites, setOnlyFavorites] = useState(false)
   const [page, setPage] = useState(1)
   const debouncedQuery = useDebounce(query, 300)
   const { isFavorite, toggleFavorite } = useFavorites()
 
-  const filtered = filterStocks(mockStocks, debouncedQuery, sector)
+  const source = onlyFavorites
+    ? mockStocks.filter((stock) => isFavorite(stock.symbol))
+    : mockStocks
+  const filtered = filterStocks(source, { query: debouncedQuery, sector, trend })
   const pages = totalPages(filtered.length, PAGE_SIZE)
   const currentPage = Math.min(page, pages)
   const visibleStocks = paginate(filtered, currentPage, PAGE_SIZE)
@@ -33,6 +40,21 @@ export function HomePage() {
     setSector(value)
     setPage(1)
   }
+
+  const handleTrendChange = (value: Trend) => {
+    setTrend(value)
+    setPage(1)
+  }
+
+  const handleOnlyFavoritesChange = (value: boolean) => {
+    setOnlyFavorites(value)
+    setPage(1)
+  }
+
+  const emptyMessage =
+    onlyFavorites && source.length === 0
+      ? 'Aún no tienes favoritas. Pulsa la ★ de una acción para guardarla.'
+      : 'No hay acciones que coincidan con tu búsqueda.'
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
@@ -48,12 +70,27 @@ export function HomePage() {
           selected={sector}
           onSelect={handleSectorChange}
         />
+        <div className="flex flex-wrap items-center gap-4">
+          <TrendFilter selected={trend} onSelect={handleTrendChange} />
+          <button
+            type="button"
+            onClick={() => handleOnlyFavoritesChange(!onlyFavorites)}
+            aria-pressed={onlyFavorites}
+            className={`rounded-full px-3 py-1 text-sm transition ${
+              onlyFavorites
+                ? 'bg-amber-400 text-slate-950'
+                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+            }`}
+          >
+            ★ Solo favoritas
+          </button>
+        </div>
       </section>
 
       <main className="mx-auto max-w-6xl px-4 pb-12">
         {visibleStocks.length === 0 ? (
           <p className="rounded-2xl border border-dashed border-slate-800 p-8 text-center text-slate-400">
-            No hay acciones que coincidan con tu búsqueda.
+            {emptyMessage}
           </p>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
