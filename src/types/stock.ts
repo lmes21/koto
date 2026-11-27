@@ -11,3 +11,5 @@ export interface PricePoint {
   date: string
   close: number
 }
+
+export type Trend = 'all' | 'up' | 'down'
