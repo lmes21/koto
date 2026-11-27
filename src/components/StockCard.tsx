@@ -3,9 +3,11 @@ import { formatPercent, formatPrice } from '../utils/format'
 
 interface StockCardProps {
   stock: Stock
+  isFavorite: boolean
+  onToggleFavorite: (symbol: string) => void
 }
 
-export function StockCard({ stock }: StockCardProps) {
+export function StockCard({ stock, isFavorite, onToggleFavorite }: StockCardProps) {
   const isUp = stock.changePercent >= 0
 
   return (
@@ -15,12 +17,28 @@ export function StockCard({ stock }: StockCardProps) {
           <h2 className="text-lg font-semibold">{stock.symbol}</h2>
           <p className="text-sm text-slate-400">{stock.name}</p>
         </div>
-        <span className="rounded-full bg-slate-800 px-2 py-1 text-xs text-slate-300">
-          {stock.sector}
-        </span>
+        <button
+          type="button"
+          onClick={() => onToggleFavorite(stock.symbol)}
+          aria-pressed={isFavorite}
+          aria-label={
+            isFavorite
+              ? `Quitar ${stock.symbol} de favoritos`
+              : `Añadir ${stock.symbol} a favoritos`
+          }
+          className={`text-2xl leading-none transition ${
+            isFavorite ? 'text-amber-400' : 'text-slate-600 hover:text-slate-400'
+          }`}
+        >
+          {isFavorite ? '★' : '☆'}
+        </button>
       </div>
 
-      <p className="mt-6 text-2xl font-bold">{formatPrice(stock.price)}</p>
+      <span className="mt-3 inline-block rounded-full bg-slate-800 px-2 py-1 text-xs text-slate-300">
+        {stock.sector}
+      </span>
+
+      <p className="mt-4 text-2xl font-bold">{formatPrice(stock.price)}</p>
       <p
         className={`mt-1 text-sm font-medium ${
           isUp ? 'text-emerald-400' : 'text-rose-400'
